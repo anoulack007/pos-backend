@@ -2,7 +2,7 @@ use axum::{Router, routing::get};
 use sea_orm::DatabaseConnection;
 
 use crate::config::Config;
-
+use crate::auth;
 #[derive(Clone)]
 pub struct AppState{
     pub db: DatabaseConnection,
@@ -14,6 +14,7 @@ pub fn create_app(db: DatabaseConnection, config:Config) -> Router{
 
     Router::new()
         .route("/health", get(health_handler))
+        .nest("/auth", auth::routes())
         .with_state(state)
 }
 

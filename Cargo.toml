@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-migration ={path = "./migration"}
 axum = { version = "0.8.7", features = ["macros", "json"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
@@ -14,7 +13,8 @@ dotenvy = "0.15.7"
 sea-orm = { version = "1.1.19", features = [
   "macros",
   "runtime-tokio-rustls",
-  "sqlx-postgres"
+  "sqlx-postgres",
+  "with-uuid"
 ] }
 
 jsonwebtoken = "9.3.0"

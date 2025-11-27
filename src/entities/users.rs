@@ -5,15 +5,24 @@ use sea_orm::entity::prelude::*;
 pub enum UserRole{
     #[sea_orm(string_value = "ADMIN")]
     Admin,
-    #[sea_orm(string_value = "USER")]
+    #[sea_orm(string_value = "CASHIER")]
     Cashier,
+}
+
+impl std::fmt::Display for UserRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UserRole::Admin => write!(f, "ADMIN"),
+            UserRole::Cashier => write!(f, "CASHIER"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    pub id: Uuid,
     pub username:String,
     pub password_hash:String,
     pub full_name: Option<String>,
