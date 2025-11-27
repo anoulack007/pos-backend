@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "install rust-analyzer",
+            "type": "shell",
+            "command": "rustup",
+            "args": ["component", "add", "rust-analyzer", "--toolchain", "stable-x86_64-pc-windows-msvc"],
+            "group": "build"
+        }
+    ]
+}

@@ -1,0 +1,97 @@
+-- 1) Categories
+CREATE TABLE categories (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    parent_id   INT REFERENCES categories(id),
+    CONSTRAINT uq_category_name_parent UNIQUE (name, parent_id)
+);
+CREATE INDEX idx_categories_parent_id ON categories(parent_id);
+
+-- 2) Products
+CREATE TABLE products (
+    id              SERIAL PRIMARY KEY,
+    category_id     INT REFERENCES categories(id),
+    name            VARCHAR(255) NOT NULL,
+    sku             VARCHAR(100) UNIQUE,
+    barcode         VARCHAR(100),
+    price           NUMERIC(12,2) NOT NULL CHECK (price >= 0),
+    cost_price      NUMERIC(12,2) CHECK (cost_price IS NULL OR cost_price >= 0),
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMP NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_products_category_id ON products(category_id);
+CREATE INDEX idx_products_barcode ON products(barcode);
+CREATE INDEX idx_products_sku ON products(sku);
+
+-- 3) Stocks (ใช้ product_id เป็น PK)
+CREATE TABLE stocks (
+    product_id  INT PRIMARY KEY REFERENCES products(id),
+    quantity    INT NOT NULL DEFAULT 0 CHECK (quantity >= 0)
+);
+
+-- 4) Users
+CREATE TYPE user_role AS ENUM ('ADMIN', 'CASHIER');
+
+CREATE TABLE users (
+    id              SERIAL PRIMARY KEY,
+    username        VARCHAR(50) UNIQUE NOT NULL,
+    password_hash   VARCHAR(255) NOT NULL,
+    full_name       VARCHAR(100),
+    role            user_role NOT NULL,
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- 5) Sales
+CREATE TYPE payment_method AS ENUM ('CASH', 'CARD', 'TRANSFER', 'EWALLET');
+
+CREATE TABLE sales (
+    id              BIGSERIAL PRIMARY KEY,
+    receipt_no      VARCHAR(50),
+    cashier_id      INT NOT NULL REFERENCES users(id),
+    total_amount    NUMERIC(12,2) NOT NULL CHECK (total_amount >= 0),
+    total_discount  NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (total_discount >= 0),
+    payment_method  payment_method NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- optional: unique receipt_no (ถ้าใช้จริงเป็นเลขบิล)
+CREATE UNIQUE INDEX uq_sales_receipt_no ON sales(receipt_no) WHERE receipt_no IS NOT NULL;
+CREATE INDEX idx_sales_created_at ON sales(created_at);
+CREATE INDEX idx_sales_cashier_created_at ON sales(cashier_id, created_at);
+
+-- 6) Sale items
+CREATE TABLE sale_items (
+    id              BIGSERIAL PRIMARY KEY,
+    sale_id         BIGINT NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+    product_id      INT NOT NULL REFERENCES products(id),
+    quantity        INT NOT NULL CHECK (quantity > 0),
+    unit_price      NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
+    discount        NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (discount >= 0)
+);
+
+CREATE INDEX idx_sale_items_sale_id ON sale_items(sale_id);
+CREATE INDEX idx_sale_items_product_id ON sale_items(product_id);
+
+-- 7) Stock movements (ไว้หลัง sales)
+CREATE TYPE stock_movement_type AS ENUM (
+    'SALE',
+    'PURCHASE',
+    'ADJUST'
+);
+
+CREATE TABLE stock_movements (
+    id              BIGSERIAL PRIMARY KEY,
+    product_id      INT NOT NULL REFERENCES products(id),
+    change_qty      INT NOT NULL CHECK (change_qty <> 0),
+    movement_type   stock_movement_type NOT NULL,
+    related_sale_id BIGINT REFERENCES sales(id) ON DELETE SET NULL,
+    note            TEXT,
+    created_at      TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_stock_movements_product_created_at
+    ON stock_movements(product_id, created_at);
+CREATE INDEX idx_stock_movements_type
+    ON stock_movements(movement_type);
