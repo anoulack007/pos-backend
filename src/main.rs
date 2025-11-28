@@ -1,12 +1,14 @@
 mod config;
 mod db;
-mod app;
+mod controller;
 mod entities;
-mod auth;
+mod service;
+mod middleware;
 
+use config::logging::init_logging;
 use crate::config::Config;
 use crate::db::connect_db;
-use crate::app::create_app;
+use crate::controller::create_app;
 
 use dotenvy::dotenv;
 use std::net::SocketAddr;
@@ -14,9 +16,8 @@ use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    init_logging();
     dotenv().ok();
-    tracing_subscriber::fmt().init();
-
     let config = Config::from_env()?;
     let db = connect_db(&config.database_url).await?;
 

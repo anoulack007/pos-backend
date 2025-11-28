@@ -3,7 +3,7 @@ pub mod jwt;
 pub mod handlers;
 
 use axum::{Router, routing::post};
-use crate::app::AppState;
+use crate::controller::app::AppState;
 use self::handlers::{register_handler, login_handler, refresh_handler};
 
 pub fn routes() -> Router<AppState>{

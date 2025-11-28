@@ -1,9 +1,11 @@
 use axum::{Json, extract::State};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use sea_orm::{EntityTrait, ColumnTrait, QueryFilter, ActiveModelTrait,Set};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::prelude::Uuid;
 
-use crate::app::AppState;
+
+use crate::controller::app::AppState;
 use crate::entities::users::{self , Entity as Users, ActiveModel as UserActiveModel, UserRole};
 use super::dto::{RegisterRequest, RegisterResponse, LoginRequest, LoginResponse, RefreshRequest};
 use super::jwt::{generate_token_pair, Claims};
@@ -18,11 +20,13 @@ fn internal_error<E: std::fmt::Display>(
 }
 
 fn hash_password(plain: &str) -> anyhow::Result<String>{
-    Ok(plain.to_string())
+    let hashed = hash(plain, DEFAULT_COST)?;
+    Ok(hashed)
 }
 
-fn verify_password(plain: &str, hash: &str) -> anyhow::Result<bool>{
-    Ok(plain == hash)
+fn verify_password(plain: &str, hashed: &str) -> anyhow::Result<bool>{
+    let valid = verify(plain, hashed)?;
+    Ok(valid)
 }
 
 pub async fn register_handler(
@@ -41,7 +45,7 @@ pub async fn register_handler(
 
     let password_hash = hash_password(&body.password).map_err(internal_error)?;
 
-    let mut new_user = UserActiveModel{
+    let new_user = UserActiveModel{
         username: Set(body.username.clone()),
         password_hash: Set(password_hash),
         full_name: Set(body.full_name.clone()),
