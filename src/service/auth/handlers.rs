@@ -5,7 +5,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use sea_orm::prelude::Uuid;
 
 
-use crate::controller::app::AppState;
+use crate::app::AppState;
 use crate::entities::users::{self , Entity as Users, ActiveModel as UserActiveModel, UserRole};
 use super::dto::{RegisterRequest, RegisterResponse, LoginRequest, LoginResponse, RefreshRequest};
 use super::jwt::{generate_token_pair, Claims};

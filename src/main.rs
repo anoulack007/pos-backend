@@ -1,6 +1,6 @@
 mod config;
 mod db;
-mod controller;
+mod app;
 mod entities;
 mod service;
 mod middleware;
@@ -8,7 +8,7 @@ mod middleware;
 use config::logging::init_logging;
 use crate::config::Config;
 use crate::db::connect_db;
-use crate::controller::create_app;
+use crate::app::create_app;
 
 use dotenvy::dotenv;
 use std::net::SocketAddr;
