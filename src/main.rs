@@ -1,14 +1,14 @@
 mod config;
 mod db;
-mod app;
 mod entities;
 mod service;
 mod middleware;
+mod route;
 
 use config::logging::init_logging;
 use crate::config::Config;
-use crate::db::connect_db;
-use crate::app::create_app;
+use crate::db::db::connect_db;
+use crate::route::create_app;
 
 use dotenvy::dotenv;
 use std::net::SocketAddr;
